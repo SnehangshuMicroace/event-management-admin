@@ -1,7 +1,7 @@
 // EventView.js
 import React, { useEffect, useState } from 'react'
 import { db } from "../../firebase"
-import { collection } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import Button from 'react-bootstrap/esm/Button';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { collections, tableFields } from '../../config';
@@ -12,6 +12,13 @@ import { adminCollection, fetchDataFromDb } from '../../services';
 import { MdQrCodeScanner } from "react-icons/md";
 import {QrScanner} from '@yudiel/react-qr-scanner';
 
+import { IoCheckmarkDoneCircle } from "react-icons/io5";
+import { RxCrossCircled } from "react-icons/rx";
+
+
+// import { QrReader } from 'react-qr-reader';
+
+
 function EventView() {
   const { state, dispatch } = useGlobalState();
   const [data, setData] = useState([]);
@@ -19,6 +26,10 @@ function EventView() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [showModal, setShowModal] = useState(false); 
+    const [scanResult, setScanResult] = useState('');
+    const [alreadyCheckedModal, setAlreadyCheckedModal] = useState(false); 
+
   const navigate = useNavigate()
   const location = useLocation();
   const url = location.pathname;
@@ -33,7 +44,7 @@ function EventView() {
         accessorKey: col.item
       }))
     );
-    getData();
+    getData();  
   }, [])
 
 
@@ -62,6 +73,42 @@ function EventView() {
     navigate(`/${model}/${data}`)
   }
 
+  
+  const handleQRDecode = async (result) => {
+    setIsLoading(true);
+
+    if (result) {
+        try {
+            const q = query(customer, where("MobileNumber", "==", result));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                alert('No member found with this mobile number.');
+            } else {
+                const memberData = querySnapshot.docs[0].data();
+                if (!memberData.entry) {
+                    await updateDoc(querySnapshot.docs[0].ref, { entry: true });
+                    setShowModal(true);
+                    setScanResult(result);
+                } else {
+                    setAlreadyCheckedModal(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating entry:', error);
+        } finally {
+            setIsScanning(false);
+            setIsLoading(false);
+        }
+    } else {
+        alert('No QR Code detected.');
+        setIsLoading(false);
+    }
+}
+
+
+
+
   return (
     <div className='container p-2 '>
       {isScanning ? 
@@ -72,9 +119,35 @@ function EventView() {
           </Button>
         </div>
         <QrScanner
-          onDecode={(result) => console.log(result)}
+         onDecode={handleQRDecode}
           onError={(error) => console.log(error?.message)}
-      />
+        />
+               <Modal show={showModal} onHide={() => setShowModal(false)} style={{marginTop:"42%" }}>
+                <Modal.Header closeButton>
+                    <Modal.Title style={{color:"green"}}>Check-in Success</Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{display:"flex",justifyContent:"center", flexDirection:"column", alignItems:"center"}}>
+                  <IoCheckmarkDoneCircle style={{fontSize:"100x", color:"green"}}/>
+                  <h1>successfully Checked In</h1>
+                </Modal.Body>
+                <div style={{display:"flex", justifyContent:"space-around", marginBottom:"3%"}}>
+                      <Button onClick={()=>{setIsScanning(false)}}>Close</Button>
+                      <Button onClick={() => setShowModal(false)}>Re Scan</Button>
+                    </div>
+            </Modal>
+            <Modal show={alreadyCheckedModal} onHide={() => setAlreadyCheckedModal(false)} style={{marginTop:"42%" }}>
+                <Modal.Header closeButton>
+                    <Modal.Title  style={{color:"red"}}>Already Checked In</Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{display:"flex",justifyContent:"center", flexDirection:"column", alignItems:"center"}}>
+                  <RxCrossCircled style={{fontSize:"100px", color:"red"}}/>
+                    <p>You're already checked in. Have a great time!</p>
+                </Modal.Body>
+                <div style={{display:"flex", justifyContent:"space-around", marginBottom:"3%"}}>
+                      <Button onClick={()=>{setIsScanning(false)}}>Close</Button>
+                      <Button onClick={() => setAlreadyCheckedModal(false)}>Re Scan</Button>
+                    </div>
+            </Modal>
       </div> :
       <div>
       <h2 className="text-xl font-bold mb-4">{}</h2>
@@ -82,12 +155,11 @@ function EventView() {
       <div className='flex justify-between'>
         <Button className='mb-2 drop-shadow' onClick={() => setIsScanning(true)}>
            <span className='flex items-center justify-around p-1 text-3xl'> <MdQrCodeScanner /></span>
-          </Button>
+        </Button>
         </div>
- 
       {isLoading && !data[0] &&
         <div className='w-full h-60 flex justify-center items-center'>
-          <Spinner animation="border" variant="secondary" />
+          <Spinner animation="border" variant="secondary" />  
         </div>}
       {showCreateForm ? null :
         (data[0] ?
@@ -110,22 +182,21 @@ function EventView() {
                   cell: (rowData) => {
                     return (
                       <td>
-                        <button className={`${rowData?.row?.original?.entry ==
-                          true ? 'bg-green-600' : 'bg-red-600'}
-                          py-1 text-xs rounded text-white w-20 shadow`}>
-                          {rowData?.row?.original?.AVAILABLE ? 'Yes' : 'No'}
-                        </button>
-                      </td>)
+                      <button className={`${rowData?.row?.original?.entry ? 'bg-green-600' : 'bg-red-600'}
+                        py-1 text-xs rounded text-white w-20 shadow`}>
+                        {rowData?.row?.original?.entry ? 'Yes' : 'No'}
+                      </button>
+                    </td>)
                   }
                 },
-                {
-                  header: 'Actions',
-                  cell: (rowData) => {
-                    return (<div className="flex justify-between">
-                      <button onClick={() => handleView(rowData?.row?.original?.id)} className="btn btn-primary btn-sm me-2" > Attend </button>
-                    </div>)
-                  }
-                }
+                // {
+                //   header: 'Actions',
+                //   cell: (rowData) => {
+                //     return (<div className="flex justify-between">
+                //       <button onClick={() => handleView(rowData?.row?.original?.id)} className="btn btn-primary btn-sm me-2" > Attend </button>
+                //     </div>)
+                //   }
+                // }
               ]}
               pageLimit={10}
             />

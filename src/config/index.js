@@ -33,15 +33,20 @@ export const collections = {
 export const tableFields = {
     MEMBER:
         [ {
-            heading: 'Name',
-            item: 'name'
+            heading: 'Email ',
+            item: 'MemberName'
         },{
             heading: 'Phone',
-            item: 'mobileNo'
+            item: 'MobileNumber'
         }, {
             heading: 'Email',
-            item: 'email'
-        }],
+            item: 'Email'
+        },
+         {
+            heading: 'InvitedBy',
+            item: 'InvitedByName'
+        }
+    ],
     PRODUCTS:
         [{
             heading: 'Code',

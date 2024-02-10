@@ -133,43 +133,8 @@ function Dashboard() {
     }
   };
   return (
-    <div className="container min-h-screen p-4">
-      {deferredPrompt && (
-        <div className="fixed bottom-0 right-0 p-4">
-          <button onClick={handleAddToHomeScreen} className="bg-blue-500 text-white p-2 rounded">
-            Add to Home Screen
-          </button>
-        </div>
-      )}
-      <div className='flex items-center justify-start w-full h-full'>
-        <p className='text-[30px] text-slate-600 font-bold'> {company?.CName || 'Welcome'}</p>
-      </div>
-      <Row className='pt-4'>
-        <Col sm={6} md={6} lg={4} xl={3} className=''>
-          <div className='rounded-xl bg-slate-200 drop-shadow sm:w-60 mx-auto h-max my-1'>
-            <div className='w-full mx-auto flex items-center around justify-between px-4'>
-              <p className='text-xl font-semibold'>Returns</p>
-              <p className='text-[30px] font-bold text-green-700 text-right'>16</p>
-            </div>
-          </div>
-        </Col>
-        <Col sm={6} md={6} lg={4} xl={3} className=''>
-          <div className='rounded-xl bg-slate-200 drop-shadow sm:w-60 mx-auto h-max my-1'>
-            <div className='w-full mx-auto flex items-center around justify-between px-4'>
-              <p className='text-xl font-semibold'>Special Orders</p>
-              <p className='text-[30px] font-bold text-sky-700 text-right'>15</p>
-            </div>
-          </div>
-        </Col>
-        <Col  sm={6} md={6} lg={4} xl={3} className=''>
-          <div className='rounded-xl bg-slate-200 drop-shadow sm:w-60 mx-auto h-max my-1'>
-            <div className='w-full mx-auto flex items-center around justify-between px-4'>
-              <p className='text-xl font-semibold'>Products</p>
-              <p className='text-[30px] font-bold text-yellow-700 text-right'>32</p>
-            </div>
-          </div>
-        </Col>
-      </Row>
+    <div className="container min-h-screen p-4 flex justify-center text-white">
+      <h1>Dashboard</h1>
     </div>
   );
 }

@@ -24,14 +24,7 @@ function Event() {
             time: '5pm to 8pm',
             membersJoined: 10,
             image: event1
-        },
-        {
-            id: 'VS7ExY0IJjovzEdc48g2',
-            name: "Event 2",
-            location: "Location 2",
-            membersJoined: 20,
-            image: 'https://as1.ftcdn.net/v2/jpg/06/29/68/32/1000_F_629683211_eOwLyccce7wRa8yv52fxxEnlXsN2wIm7.jpg'
-        }
+        }   
     ];
 
     return (
